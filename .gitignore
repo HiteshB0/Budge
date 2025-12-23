@@ -1,0 +1,29 @@
+# Python specifics
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# Environment Variables (CRITICAL: Never commit secrets)
+.env
+.env.local
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Local testing/media
+local_simulated/
+*.log
