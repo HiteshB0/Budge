@@ -12,4 +12,4 @@ async def upload_screenshot(
 ):
     image_bytes = await file.read()
     result = ocr.process_image(image_bytes)
-    return result
+    return {"status": "success", "transactions_found": len(result.transactions), "data": result}

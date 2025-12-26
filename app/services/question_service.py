@@ -1,10 +1,9 @@
-# app/services/question_service.py
-import google.generativeai as genai
 import os
-from typing import Dict, List
+from typing import Dict
 import json
+from google import genai
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 class QuestionGenerator:
     """Generates Socratic questions that provoke reflection, NOT advice"""
@@ -65,14 +64,14 @@ EXAMPLE BAD QUESTIONS (too preachy):
 
 Generate ONE question (return ONLY the question, no preamble):"""
         
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents=prompt
+        )
         question = response.text.strip().strip('"')
         
-        # Safety check
         for forbidden in self.FORBIDDEN_PATTERNS:
             if forbidden in question.lower():
-                # Fallback to template-based question
                 return self._template_fallback(pattern_code, pattern_details)
         
         return question
