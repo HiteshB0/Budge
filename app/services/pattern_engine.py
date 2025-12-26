@@ -51,7 +51,7 @@ def run_pattern_scan(db: Session, user_id: str) -> List[DetectedPattern]:
             pattern_code=p.pattern_code,
             bias_mapping=p.bias_mapping,
             details=p.details,
-
+            trigger_transaction_ids=p.trigger_transaction_ids
         )
         db.add(db_pat)
         saved_patterns.append(db_pat)

@@ -1,0 +1,84 @@
+{
+  "concepts": [
+    {
+      "id": "present_bias",
+      "title": "Present Bias",
+      "definition": "The tendency to overvalue immediate rewards while undervaluing future benefits. This leads to choosing smaller immediate pleasures over larger delayed rewards.",
+      "examples": [
+        "Buying daily coffee ($5) instead of investing that money ($150/month)",
+        "Choosing convenient expensive food over meal planning",
+        "Impulse purchases that provide instant gratification"
+      ],
+      "reflection_prompts": [
+        "What future goal is this spending pattern affecting?",
+        "If you saved this amount for 6 months, what could you do with it?",
+        "What feeling are you trying to satisfy with these purchases?"
+      ],
+      "related_patterns": ["LATTE_FACTOR", "SUBSCRIPTION_CREEP"]
+    },
+    {
+      "id": "mental_accounting",
+      "title": "Mental Accounting",
+      "definition": "Treating money differently based on its source or intended use, rather than recognizing all money has equal value.",
+      "examples": [
+        "Spending bonus money frivolously while being frugal with salary",
+        "Keeping savings account while carrying credit card debt",
+        "Spending gift cards immediately but saving cash carefully"
+      ],
+      "reflection_prompts": [
+        "Why do you treat this money differently than your regular income?",
+        "What would you do if this were cash in your hand?",
+        "Are you optimizing across all your money, or just within buckets?"
+      ],
+      "related_patterns": ["WINDFALL_SPENDING", "GIFT_CARD_EFFECT"]
+    },
+    {
+      "id": "anchoring",
+      "title": "Anchoring Bias",
+      "definition": "Over-relying on the first piece of information (the 'anchor') when making decisions, even if it's irrelevant.",
+      "examples": [
+        "Judging value based on 'original price' during sales",
+        "Using credit card limit as spending guideline",
+        "Comparing purchases to one expensive item to justify others"
+      ],
+      "reflection_prompts": [
+        "What's the reference point you're using to judge this purchase?",
+        "Is that reference point actually meaningful to your situation?",
+        "What would you decide if you had no comparison available?"
+      ],
+      "related_patterns": ["SALE_JUSTIFIED", "PREMIUM_ANCHOR"]
+    },
+    {
+      "id": "emotional_spending",
+      "title": "Emotional Spending",
+      "definition": "Making purchases to regulate emotions (stress, boredom, sadness) rather than for the item's utility.",
+      "examples": [
+        "Shopping when stressed or anxious",
+        "Buying things when bored or lonely",
+        "Retail therapy after bad news"
+      ],
+      "reflection_prompts": [
+        "What emotion were you feeling before making these purchases?",
+        "Did the purchases actually resolve that feeling long-term?",
+        "What else could address that emotion without spending?"
+      ],
+      "related_patterns": ["IMPULSE_CLUSTER", "STRESS_SHOPPING"]
+    },
+    {
+      "id": "sunk_cost",
+      "title": "Sunk Cost Fallacy",
+      "definition": "Continuing to invest in something because of past investment, even when it's not rational to continue.",
+      "examples": [
+        "Paying for unused gym membership because 'already paid'",
+        "Keeping subscription services 'just in case'",
+        "Finishing expensive food when already full"
+      ],
+      "reflection_prompts": [
+        "If you were deciding today with no history, would you choose this?",
+        "Is past spending influencing current decisions?",
+        "What's the actual cost of continuing versus stopping?"
+      ],
+      "related_patterns": ["SUBSCRIPTION_INERTIA", "UNUSED_MEMBERSHIPS"]
+    }
+  ]
+}
