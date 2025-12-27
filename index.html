@@ -243,6 +243,11 @@
                     method: 'POST'
                 });
                 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+                
                 const data = await response.json();
                 currentQuestionId = data.question_id;
                 
@@ -259,6 +264,7 @@
                 `;
             } catch (error) {
                 result.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+                console.error('Full error:', error);
             }
         }
 

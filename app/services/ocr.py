@@ -60,7 +60,7 @@ def process_image(image_bytes: bytes) -> ExtractedReceipt:
         """
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-1.5-flash-002",
             contents=[
                 prompt,
                 {"mime_type": "image/jpeg", "data": image_bytes}

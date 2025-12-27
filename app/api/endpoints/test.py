@@ -7,44 +7,88 @@ import uuid
 
 router = APIRouter()
 
-__all__ = ['router']
-
 @router.post("/create-user")
 def create_test_user(db: Session = Depends(get_db)):
-    """Create test user with sample transactions"""
+    """Create test user with realistic spending patterns"""
     
     user_id = uuid.uuid4()
     user = User(id=user_id, email=f"test_{user_id}@example.com")
     db.add(user)
-    db.flush()  # Commit user first before adding transactions
+    db.flush()
     
-    # Create 6 Starbucks purchases (triggers LATTE_FACTOR)
     today = date.today()
-    for i in range(6):
-        tx = Transaction(
-            user_id=user_id,
-            date=today - timedelta(days=i*3),
-            merchant="Starbucks",
-            amount=5.50,
-            verified=True
-        )
-        db.add(tx)
+    transactions = []
     
-    # Create impulse cluster (5 purchases same day)
-    for i in range(5):
-        tx = Transaction(
+    # Pattern 1: LATTE_FACTOR - Daily Starbucks (10 purchases, all under $20)
+    for i in range(10):
+        transactions.append(Transaction(
             user_id=user_id,
-            date=today - timedelta(days=10),
-            merchant=["Amazon", "Zara", "Swiggy", "BookMyShow", "Uber"][i],
-            amount=[150, 200, 80, 120, 90][i],
+            date=today - timedelta(days=i*2),
+            merchant="Starbucks",
+            amount=5.75,
             verified=True
-        )
+        ))
+    
+    # Pattern 1: More small purchases at different cafe
+    for i in range(8):
+        transactions.append(Transaction(
+            user_id=user_id,
+            date=today - timedelta(days=i*3 + 1),
+            merchant="Cafe Coffee Day",
+            amount=4.50,
+            verified=True
+        ))
+    
+    # Pattern 2: IMPULSE_CLUSTER - Stress shopping day (7 purchases same day)
+    stress_day = today - timedelta(days=15)
+    impulse_purchases = [
+        ("Amazon", 89.99),
+        ("Flipkart", 156.50),
+        ("Myntra", 230.00),
+        ("Swiggy", 45.00),
+        ("Zomato", 38.50),
+        ("BookMyShow", 120.00),
+        ("Uber", 25.00),
+    ]
+    
+    for merchant, amount in impulse_purchases:
+        transactions.append(Transaction(
+            user_id=user_id,
+            date=stress_day,
+            merchant=merchant,
+            amount=amount,
+            verified=True
+        ))
+    
+    # Some normal larger purchases (won't trigger patterns)
+    transactions.append(Transaction(
+        user_id=user_id,
+        date=today - timedelta(days=20),
+        merchant="Grocery Store",
+        amount=150.00,
+        verified=True
+    ))
+    
+    transactions.append(Transaction(
+        user_id=user_id,
+        date=today - timedelta(days=25),
+        merchant="Gas Station",
+        amount=80.00,
+        verified=True
+    ))
+    
+    for tx in transactions:
         db.add(tx)
     
     db.commit()
     
     return {
         "user_id": str(user_id),
-        "transactions_count": 11,
-        "message": "Test data created successfully"
+        "transactions_count": len(transactions),
+        "patterns_expected": 3,
+        "details": {
+            "latte_factor_starbucks": 10,
+            "latte_factor_ccd": 8,
+            "impulse_cluster": 7
+        }
     }

@@ -14,6 +14,7 @@ class DetectedPatternCreate(PatternBase):
 
 class DetectedPatternResponse(PatternBase):
     id: UUID
+    user_id: UUID
     created_at: datetime
     
     class Config:
