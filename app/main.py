@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.allmodels import Base
 from app.db.session import engine
-from app.api.endpoints import ingest, patterns, learning
+from app.api.endpoints import ingest, patterns, learning, test
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -13,7 +13,7 @@ app = FastAPI(
     description="Financial behavior pattern detection and learning system"
 )
 
-# CORS middleware
+# CORS - MUST be before routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,6 +23,7 @@ app.add_middleware(
 )
 
 # Routes
+app.include_router(test.router, prefix="/api/v1/test", tags=["Test"])
 app.include_router(ingest.router, prefix="/api/v1/ingest", tags=["Ingest"])
 app.include_router(patterns.router, prefix="/api/v1/patterns", tags=["Patterns"])
 app.include_router(learning.router, prefix="/api/v1/learning", tags=["Learning"])

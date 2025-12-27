@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budge - Financial Pattern Detector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        button:hover { background: #5568d3; transform: translateY(-2px); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 100px;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+        .result {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .pattern-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+        }
+        .pattern-card h3 { color: #764ba2; margin-bottom: 8px; }
+        .question-box {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .question-box h3 { color: #856404; margin-bottom: 10px; }
+        .loading { color: #667eea; font-style: italic; }
+        .error { color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 8px; }
+        .success { color: #155724; background: #d4edda; padding: 12px; border-radius: 8px; }
+        .step-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Budge</h1>
+        <p class="subtitle">Discover your spending patterns and learn financial behavior</p>
+
+        <!-- Step 1: Create Test Data -->
+        <div class="section">
+            <span class="step-badge">STEP 1</span>
+            <h2>Create Test User & Transactions</h2>
+            <button onclick="createTestData()">Create Test Data</button>
+            <div id="testDataResult"></div>
+        </div>
+
+        <!-- Step 2: Scan Patterns -->
+        <div class="section">
+            <span class="step-badge">STEP 2</span>
+            <h2>Scan for Spending Patterns</h2>
+            <input type="text" id="userId" placeholder="Enter user ID (from Step 1)" />
+            <button onclick="scanPatterns()">Scan Patterns</button>
+            <div id="patternsResult"></div>
+        </div>
+
+        <!-- Step 3: Generate Question -->
+        <div class="section">
+            <span class="step-badge">STEP 3</span>
+            <h2>Generate Reflection Question</h2>
+            <input type="text" id="patternId" placeholder="Enter pattern ID (from Step 2)" />
+            <button onclick="generateQuestion()">Generate Question</button>
+            <div id="questionResult"></div>
+        </div>
+
+        <!-- Step 4: Submit Answer -->
+        <div class="section">
+            <span class="step-badge">STEP 4</span>
+            <h2>Submit Your Reflection</h2>
+            <textarea id="answer" placeholder="Write your reflection on the spending pattern..."></textarea>
+            <button onclick="submitAnswer()">Submit Answer</button>
+            <div id="answerResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api/v1';
+        let currentUserId = '';
+        let currentQuestionId = '';
+
+        async function createTestData() {
+            const result = document.getElementById('testDataResult');
+            result.innerHTML = '<p class="loading">Creating test data...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/test/create-user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error('Failed to create test data');
+                
+                const data = await response.json();
+                currentUserId = data.user_id;
+                document.getElementById('userId').value = currentUserId;
+                
+                result.innerHTML = `
+                    <div class="result success">
+                        <strong>✅ Test data created!</strong><br>
+                        User ID: <code>${currentUserId}</code><br>
+                        Created ${data.transactions_count} transactions
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+            }
+        }
+
+        async function scanPatterns() {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('Please enter a user ID');
+                return;
+            }
+            
+            const result = document.getElementById('patternsResult');
+            result.innerHTML = '<p class="loading">Scanning patterns...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/patterns/scan/${userId}`, {
+                    method: 'POST'
+                });
+                
+                const patterns = await response.json();
+                
+                if (patterns.length === 0) {
+                    result.innerHTML = '<div class="result">No patterns detected yet.</div>';
+                    return;
+                }
+                
+                let html = '<div class="result"><strong>🔍 Detected Patterns:</strong></div>';
+                patterns.forEach((p, i) => {
+                    html += `
+                        <div class="pattern-card">
+                            <h3>${p.pattern_code}</h3>
+                            <p><strong>Bias:</strong> ${p.bias_mapping}</p>
+                            <p><strong>Details:</strong> ${JSON.stringify(p.details)}</p>
+                            <p><strong>Pattern ID:</strong> <code>${p.id}</code></p>
+                        </div>
+                    `;
+                    if (i === 0) {
+                        document.getElementById('patternId').value = p.id;
+                    }
+                });
+                
+                result.innerHTML = html;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+            }
+        }
+
+        async function generateQuestion() {
+            const patternId = document.getElementById('patternId').value;
+            const userId = document.getElementById('userId').value;
+            
+            if (!patternId || !userId) {
+                alert('Please enter both user ID and pattern ID');
+                return;
+            }
+            
+            const result = document.getElementById('questionResult');
+            result.innerHTML = '<p class="loading">Generating question...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/learning/generate-question/${patternId}?user_id=${userId}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                currentQuestionId = data.question_id;
+                
+                result.innerHTML = `
+                    <div class="question-box">
+                        <h3>💭 Reflection Question</h3>
+                        <p><strong>${data.question_text}</strong></p>
+                    </div>
+                    <div class="result">
+                        <p><strong>📚 Concept:</strong> ${data.bias_name}</p>
+                        <p><strong>Explanation:</strong> ${data.explanation}</p>
+                        <p><strong>Question ID:</strong> <code>${data.question_id}</code></p>
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+            }
+        }
+
+        async function submitAnswer() {
+            const answer = document.getElementById('answer').value;
+            const userId = document.getElementById('userId').value;
+            
+            if (!answer || !currentQuestionId || !userId) {
+                alert('Please generate a question first and write your answer');
+                return;
+            }
+            
+            const result = document.getElementById('answerResult');
+            result.innerHTML = '<p class="loading">Submitting answer...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/learning/submit-answer?user_id=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question_id: currentQuestionId,
+                        answer_text: answer
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <div class="result success">
+                        <strong>✅ ${data.message}</strong><br>
+                        Quality Score: ${data.quality_score}/100
+                    </div>
+                `;
+                
+                document.getElementById('answer').value = '';
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

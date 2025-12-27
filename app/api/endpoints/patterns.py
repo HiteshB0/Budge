@@ -9,5 +9,9 @@ router = APIRouter()
 
 @router.post("/scan/{user_id}", response_model=List[DetectedPatternResponse])
 def scan_user_patterns(user_id: str, db: Session = Depends(get_db)):
-    patterns = run_pattern_scan(db, user_id)
-    return patterns
+    try:
+        patterns = run_pattern_scan(db, user_id)
+        return patterns
+    except Exception as e:
+        print(f"Pattern scan error: {e}")
+        return []
