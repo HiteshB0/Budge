@@ -2,9 +2,8 @@ fastapi
 uvicorn
 sqlalchemy
 psycopg2-binary
-python-multipart
 pgvector
-google-genai
 python-dotenv
 pydantic
+requests
 python-multipart

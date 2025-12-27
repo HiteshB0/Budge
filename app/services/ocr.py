@@ -1,13 +1,14 @@
 import json
 import os
-from google import genai
+import base64
+import requests
 from typing import List
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 class TransactionDraft(BaseModel):
     date: str = Field(..., description="ISO 8601 format YYYY-MM-DD")
@@ -18,62 +19,68 @@ class TransactionDraft(BaseModel):
 class ExtractedReceipt(BaseModel):
     transactions: List[TransactionDraft]
 
-response_schema = {
-    "type": "OBJECT",
-    "properties": {
-        "transactions": {
-            "type": "ARRAY",
-            "items": {
-                "type": "OBJECT",
-                "properties": {
-                    "date": {
-                        "type": "STRING",
-                        "description": "ISO 8601 format YYYY-MM-DD"
-                    },
-                    "merchant": {
-                        "type": "STRING",
-                        "description": "Normalized merchant name"
-                    },
-                    "amount": {
-                        "type": "NUMBER"
-                    },
-                    "currency": {
-                        "type": "STRING"
-                    }
-                },
-                "required": ["date", "merchant", "amount"]
-            }
-        }
-    },
-    "required": ["transactions"]
+def process_image(image_bytes: bytes) -> ExtractedReceipt:
+    """Extract transactions from bank statement image using Groq Vision"""
+    try:
+        # Encode image to base64
+        image_b64 = base64.b64encode(image_bytes).decode('utf-8')
+        
+        prompt = """Analyze this bank statement image. Extract all visible transactions.
+Return ONLY valid JSON in this format:
+{
+  "transactions": [
+    {"date": "YYYY-MM-DD", "merchant": "Name", "amount": 123.45, "currency": "INR"}
+  ]
 }
 
-def process_image(image_bytes: bytes) -> ExtractedReceipt:
-    try:
-        prompt = """
-        Analyze this bank statement image. 
-        Extract all visible transactions.
-        Normalize merchant names (e.g., remove 'NY #1234' from 'Starbucks').
-        If the year is missing, assume the current year (2025).
-        Ignore running balances.
-        Return ONLY valid JSON matching the schema.
-        """
+Rules:
+- Normalize merchant names (remove location codes)
+- If year missing, assume 2025
+- Ignore running balances
+- Return empty array if no transactions found"""
 
-        response = client.models.generate_content(
-            model="gemini-1.5-flash-002",
-            contents=[
-                prompt,
-                {"mime_type": "image/jpeg", "data": image_bytes}
-            ],
-            config=genai.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=response_schema
-            )
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama-3.2-90b-vision-preview",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{image_b64}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "temperature": 0.1,
+                "max_tokens": 1000
+            },
+            timeout=30
         )
 
-        json_content = json.loads(response.text)
-        return ExtractedReceipt(**json_content)
+        if response.status_code == 200:
+            content = response.json()["choices"][0]["message"]["content"]
+            # Extract JSON from markdown code blocks if present
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0].strip()
+            
+            json_data = json.loads(content)
+            return ExtractedReceipt(**json_data)
+        else:
+            print(f"Groq Vision error: {response.status_code} - {response.text}")
+            return ExtractedReceipt(transactions=[])
 
     except Exception as e:
-        print(f"Gemini OCR Error: {e}")
+        print(f"OCR Error: {e}")
         return ExtractedReceipt(transactions=[])

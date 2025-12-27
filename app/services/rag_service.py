@@ -1,13 +1,12 @@
 import json
 import os
 from typing import Dict
-from google import genai
+import requests
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.allmodels import ConceptEmbedding
-from pathlib import Path
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 CONCEPTS_JSON = {
     "concepts": [
@@ -66,39 +65,11 @@ CONCEPTS_JSON = {
 
 class RAGService:
     def __init__(self):
-        self.embedding_model = "text-embedding-004"
         self.knowledge_base = CONCEPTS_JSON
     
     def initialize_embeddings(self, db: Session):
-        """Run once to embed knowledge base"""
-        for concept in self.knowledge_base["concepts"]:
-            existing = db.query(ConceptEmbedding).filter(
-                ConceptEmbedding.concept_id == concept["id"]
-            ).first()
-            
-            if existing:
-                continue
-            
-            content = f"""
-            {concept['title']}
-            {concept['definition']}
-            Examples: {' '.join(concept['examples'])}
-            """
-            
-            response = client.models.embed_content(
-                model=self.embedding_model,
-                contents=content
-            )
-            
-            db_embedding = ConceptEmbedding(
-                concept_id=concept["id"],
-                content=content,
-                embedding=response.embeddings[0].values
-            )
-            db.add(db_embedding)
-        
-        db.commit()
-        print(f"✓ Embedded {len(self.knowledge_base['concepts'])} concepts")
+        """No embeddings needed with simple mapping"""
+        print(f"✓ Using {len(self.knowledge_base['concepts'])} concepts")
     
     def retrieve_relevant_concept(
         self, 
@@ -112,27 +83,11 @@ class RAGService:
             if concept["id"] == bias_mapping.lower():
                 return concept
         
-        query_text = f"Spending pattern: {pattern_details}"
-        response = client.models.embed_content(
-            model=self.embedding_model,
-            contents=query_text
-        )
-        query_embedding = response.embeddings[0].values
-        
-        results = db.execute(
-            select(ConceptEmbedding).order_by(
-                ConceptEmbedding.embedding.cosine_distance(query_embedding)
-            ).limit(1)
-        ).scalars().all()
-        
-        if results:
-            concept_id = results[0].concept_id
-            return next(c for c in self.knowledge_base["concepts"] if c["id"] == concept_id)
-        
-        return None
+        # Fallback to present_bias
+        return self.knowledge_base["concepts"][0]
     
     def get_explanation(self, concept: Dict, pattern_details: Dict) -> str:
-        """Generate personalized explanation using RAG"""
+        """Generate personalized explanation"""
         
         prompt = f"""You are a financial education assistant. Explain this concept to someone who just discovered this pattern in their spending.
 
@@ -149,14 +104,31 @@ Instructions:
 - Do NOT give advice like "you should stop" or "try to save"
 - Instead, help them understand WHY this happens
 
-Example good response: "This pattern shows present bias - you're valuing the immediate comfort of coffee more than the future $150/month. That's completely normal! Our brains are wired for instant rewards."
-
 Your explanation:"""
         
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
-            contents=prompt
-        )
-        return response.text
+        try:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.7,
+                    "max_tokens": 200
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                return response.json()["choices"][0]["message"]["content"].strip()
+            else:
+                return f"{concept['title']}: {concept['definition']}"
+                
+        except Exception as e:
+            print(f"Groq API error: {e}")
+            return f"{concept['title']}: {concept['definition']}"
 
 rag_service = RAGService()

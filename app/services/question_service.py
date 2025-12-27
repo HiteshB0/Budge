@@ -1,9 +1,9 @@
 import os
 from typing import Dict
 import json
-from google import genai
+import requests
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 class QuestionGenerator:
     """Generates Socratic questions that provoke reflection, NOT advice"""
@@ -54,27 +54,38 @@ GOOD QUESTION TYPES:
 - Emotional awareness: "What feeling are you trying to create with these purchases?"
 - Future self: "Would your future self thank you for this, or wish you'd chosen differently?"
 
-EXAMPLE GOOD QUESTIONS:
-- "You spent $450 at Starbucks in 3 months. If that money had gone to your travel fund instead, where would you be going right now?"
-- "These 7 purchases happened on the same stressful day. What were you feeling, and did the spending actually help?"
-
-EXAMPLE BAD QUESTIONS (too preachy):
-- "Don't you think you should cut back on coffee?" ❌
-- "Have you considered making coffee at home?" ❌
-
 Generate ONE question (return ONLY the question, no preamble):"""
         
-        response = client.models.generate_content(
-            model="gemini-1.5-flash-002",
-            contents=prompt
-        )
-        question = response.text.strip().strip('"')
-        
-        for forbidden in self.FORBIDDEN_PATTERNS:
-            if forbidden in question.lower():
+        try:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.7,
+                    "max_tokens": 150
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                question = response.json()["choices"][0]["message"]["content"].strip().strip('"')
+                
+                for forbidden in self.FORBIDDEN_PATTERNS:
+                    if forbidden in question.lower():
+                        return self._template_fallback(pattern_code, pattern_details)
+                
+                return question
+            else:
                 return self._template_fallback(pattern_code, pattern_details)
-        
-        return question
+                
+        except Exception as e:
+            print(f"Groq API error: {e}")
+            return self._template_fallback(pattern_code, pattern_details)
     
     def _template_fallback(self, pattern_code: str, details: Dict) -> str:
         """Deterministic fallback if LLM gives advice"""
