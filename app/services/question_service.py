@@ -92,7 +92,8 @@ Generate ONE question (return ONLY the question, no preamble):"""
         templates = {
             "LATTE_FACTOR": f"You've spent ${details.get('avg_amount', 0) * details.get('count', 0):.0f} on small {details.get('merchant', 'purchases')} recently. What would that money unlock if you redirected it for 6 months?",
             "IMPULSE_CLUSTER": f"On {details.get('date', 'that day')}, you made {details.get('count', 'multiple')} purchases totaling ${details.get('total_spent', 0):.0f}. What was happening in your life that day?",
-            "SUBSCRIPTION_CREEP": f"You have {details.get('count', 'several')} subscriptions costing ${details.get('monthly_total', 0):.0f}/month. Which ones actually improved your life this month?"
+            "SUBSCRIPTION_TRAP": f"You're paying ${details.get('amount', 0):.0f} regularly to {details.get('merchant', 'a service')}. When was the last time this service genuinely delighted you?",
+            "BIG_SPLURGE": f"You spent ${details.get('amount', 0):.0f} on {details.get('merchant', 'an item')}. How long did the satisfaction from that purchase last?"
         }
         return templates.get(pattern_code, "What pattern do you notice in your spending, and what does it tell you?")
 

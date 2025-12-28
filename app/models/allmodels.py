@@ -58,7 +58,7 @@ class ConceptEmbedding(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     concept_id = Column(String, unique=True)
     content = Column(Text)
-    embedding = Column(Vector(768))
+    # embedding = Column(Vector(768))
 
 class GeneratedQuestion(Base):
     __tablename__ = "generated_questions"

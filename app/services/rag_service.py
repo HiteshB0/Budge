@@ -1,112 +1,68 @@
 import json
 import os
-from typing import Dict
 import requests
+from typing import Dict
 from sqlalchemy.orm import Session
-from sqlalchemy import select
-from app.models.allmodels import ConceptEmbedding
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
-CONCEPTS_JSON = {
-    "concepts": [
-        {
-            "id": "present_bias",
-            "title": "Present Bias",
-            "definition": "The tendency to overvalue immediate rewards while undervaluing future benefits. This leads to choosing smaller immediate pleasures over larger delayed rewards.",
-            "examples": [
-                "Buying daily coffee ($5) instead of investing that money ($150/month)",
-                "Choosing convenient expensive food over meal planning",
-                "Impulse purchases that provide instant gratification"
-            ]
-        },
-        {
-            "id": "mental_accounting",
-            "title": "Mental Accounting",
-            "definition": "Treating money differently based on its source or intended use, rather than recognizing all money has equal value.",
-            "examples": [
-                "Spending bonus money frivolously while being frugal with salary",
-                "Keeping savings account while carrying credit card debt",
-                "Spending gift cards immediately but saving cash carefully"
-            ]
-        },
-        {
-            "id": "anchoring",
-            "title": "Anchoring Bias",
-            "definition": "Over-relying on the first piece of information (the 'anchor') when making decisions, even if it's irrelevant.",
-            "examples": [
-                "Judging value based on 'original price' during sales",
-                "Using credit card limit as spending guideline",
-                "Comparing purchases to one expensive item to justify others"
-            ]
-        },
-        {
-            "id": "emotional_spending",
-            "title": "Emotional Spending",
-            "definition": "Making purchases to regulate emotions (stress, boredom, sadness) rather than for the item's utility.",
-            "examples": [
-                "Shopping when stressed or anxious",
-                "Buying things when bored or lonely",
-                "Retail therapy after bad news"
-            ]
-        },
-        {
-            "id": "sunk_cost",
-            "title": "Sunk Cost Fallacy",
-            "definition": "Continuing to invest in something because of past investment, even when it's not rational to continue.",
-            "examples": [
-                "Paying for unused gym membership because 'already paid'",
-                "Keeping subscription services 'just in case'",
-                "Finishing expensive food when already full"
-            ]
-        }
-    ]
+# Static concept definitions as fallback/context
+CONCEPTS_DB = {
+    "PRESENT_BIAS": {
+        "id": "present_bias",
+        "title": "Present Bias",
+        "definition": "Overvaluing immediate rewards at the expense of long-term goals."
+    },
+    "EMOTIONAL_SPENDING": {
+        "id": "emotional_spending",
+        "title": "Emotional Spending",
+        "definition": "Using spending to manage emotions rather than for utility."
+    },
+    "ANCHORING": {
+        "id": "anchoring",
+        "title": "Anchoring Bias",
+        "definition": "Relying too heavily on the first piece of information (like a sale price)."
+    },
+    "SUNK_COST": {
+        "id": "sunk_cost",
+        "title": "Sunk Cost Fallacy",
+        "definition": "Continuing to pay for something because of past investment, not future value."
+    }
 }
 
 class RAGService:
     def __init__(self):
-        self.knowledge_base = CONCEPTS_JSON
+        pass
     
-    def initialize_embeddings(self, db: Session):
-        """No embeddings needed with simple mapping"""
-        print(f"✓ Using {len(self.knowledge_base['concepts'])} concepts")
-    
-    def retrieve_relevant_concept(
-        self, 
-        db: Session, 
-        bias_mapping: str,
-        pattern_details: Dict
-    ) -> Dict:
+    def retrieve_relevant_concept(self, db: Session, bias_mapping: str, pattern_details: Dict) -> Dict:
         """Find best matching concept for a detected pattern"""
-        
-        for concept in self.knowledge_base["concepts"]:
-            if concept["id"] == bias_mapping.lower():
-                return concept
-        
-        # Fallback to present_bias
-        return self.knowledge_base["concepts"][0]
-    
-    def get_explanation(self, concept: Dict, pattern_details: Dict) -> str:
-        """Generate personalized explanation"""
-        
-        prompt = f"""You are a financial education assistant. Explain this concept to someone who just discovered this pattern in their spending.
+        # Simple lookup for now since we have a direct mapping
+        # bias_mapping from pattern_engine matches keys in CONCEPTS_DB
+        return CONCEPTS_DB.get(bias_mapping, {
+            "id": "unknown", 
+            "title": bias_mapping, 
+            "definition": "A financial behavioral pattern."
+        })
 
+    def get_explanation(self, concept: Dict, pattern_details: Dict) -> str:
+        """Generate personalized explanation using Groq"""
+        
+        prompt = f"""You are a friendly financial coach.
+        
 Concept: {concept['title']}
 Definition: {concept['definition']}
+User Pattern Data: {json.dumps(pattern_details)}
 
-User's Pattern: {pattern_details}
+Task: Write a 2-sentence explanation for the user about why this pattern matters.
+- Be specific to their data (mention amounts/merchants).
+- Be non-judgmental but insightful.
+- Do NOT use markdown.
+"""
 
-Instructions:
-- Use the specific numbers from their pattern
-- Connect the concept to their actual behavior
-- Be conversational and non-judgmental
-- Keep it under 100 words
-- Do NOT give advice like "you should stop" or "try to save"
-- Instead, help them understand WHY this happens
-
-Your explanation:"""
-        
         try:
+            if not GROQ_API_KEY:
+                return f"{concept['title']}: {concept['definition']} (AI unavailable)"
+
             response = requests.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
@@ -117,18 +73,19 @@ Your explanation:"""
                     "model": "llama-3.3-70b-versatile",
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.7,
-                    "max_tokens": 200
+                    "max_tokens": 150
                 },
-                timeout=30
+                timeout=10
             )
             
             if response.status_code == 200:
                 return response.json()["choices"][0]["message"]["content"].strip()
             else:
+                print(f"Groq Error: {response.text}")
                 return f"{concept['title']}: {concept['definition']}"
                 
         except Exception as e:
-            print(f"Groq API error: {e}")
+            print(f"RAG Error: {e}")
             return f"{concept['title']}: {concept['definition']}"
 
 rag_service = RAGService()
