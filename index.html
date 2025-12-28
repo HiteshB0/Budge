@@ -7,378 +7,566 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=cal:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         :root {
-            --primary: #4f46e5;     /* Indigo 600 */
-            --primary-dark: #4338ca; /* Indigo 700 */
-            --accent: #10b981;       /* Emerald 500 */
-            --bg: #f3f4f6;           /* Gray 100 */
-            --surface: #ffffff;
-            --text-main: #111827;    /* Gray 900 */
-            --text-muted: #6b7280;   /* Gray 500 */
-            --border: #e5e7eb;       /* Gray 200 */
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            /* Palette */
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --secondary: #10b981;
+            
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-sidebar: #1e1b4b; /* Deep Indigo */
+            
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-on-dark: #e2e8f0;
+            
+            --border-light: #e2e8f0;
+            --border-focus: #6366f1;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Reset & Base */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
+            background-color: var(--bg-body);
             color: var(--text-main);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
+            overflow: hidden;
         }
 
-        /* --- Header --- */
-        header {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
+        h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+
+        /* --- Sidebar Navigation --- */
+        .app-sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            color: var(--text-on-dark);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            transition: width 0.3s ease;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            padding-left: 0.5rem;
+        }
+        .brand span { font-size: 1.8rem; }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius-md);
+            color: #94a3b8;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .user-profile {
+            margin-top: auto;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .avatar {
+            width: 36px; height: 36px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: white;
+        }
+
+        /* --- Main Content Area --- */
+        .app-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 50;
+            margin-bottom: 2rem;
         }
 
-        .logo {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
+        .page-title h1 {
+            font-size: 2rem;
             font-weight: 700;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
         }
-        
-        .user-pill {
-            background: #eef2ff;
-            color: var(--primary-dark);
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            display: none; /* Hidden until user created */
-        }
+        .page-title p { color: var(--text-muted); margin-top: 0.25rem; }
 
-        /* --- Tabs --- */
-        .tabs {
-            display: flex;
-            gap: 2rem;
-            margin-top: 1rem;
+        /* Views */
+        .view-section { 
+            display: none; 
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        .tab-btn {
-            background: none;
-            border: none;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .tab-btn:hover { color: var(--primary); }
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-
-        /* --- Main Content --- */
-        main {
-            flex: 1;
-            max-width: 1200px;
-            margin: 2rem auto;
-            width: 100%;
-            padding: 0 1rem;
-        }
-
-        .view-section { display: none; animation: fadeIn 0.3s ease-out; }
         .view-section.active { display: block; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- Cards & Components --- */
-        .card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(15px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
         }
 
-        h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main); }
-        h3 { font-size: 1rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem; }
+        /* --- Components --- */
+        .grid-layout {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        
+        /* Premium Card */
+        .card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
 
-        /* Buttons */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        
+        .card-title { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+
+        /* Modern Forms */
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label { 
+            display: block; 
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            color: var(--text-muted); 
+            margin-bottom: 0.5rem; 
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            background: #f8fafc;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Gradient Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
+            padding: 0.85rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.2s;
             border: none;
+            transition: var(--transition);
             gap: 0.5rem;
         }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
-        .btn-outline:hover { background: var(--bg); }
-        .btn-full { width: 100%; }
-
-        /* Forms */
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
-        input:focus { outline: none; border-color: var(--primary); ring: 2px solid #e0e7ff; }
-
-        /* --- Specific Views --- */
         
-        /* Input View */
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-        @media (max-width: 768px) { .input-grid { grid-template-columns: 1fr; } }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+        }
+        
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:hover { 
+            box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3); 
+            filter: brightness(1.1);
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+        }
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #fdfeff;
+        }
+        
+        .btn-danger {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fee2e2;
+        }
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
 
-        .or-divider {
-            text-align: center;
-            margin: 2rem 0;
-            position: relative;
-        }
-        .or-divider::before {
-            content: "";
-            position: absolute;
-            left: 0; top: 50%;
-            width: 100%;
-            height: 1px;
-            background: var(--border);
-            z-index: 0;
-        }
-        .or-divider span {
-            background: var(--bg);
-            padding: 0 1rem;
+        .btn-icon {
+            width: 32px; height: 32px;
+            padding: 0;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
             color: var(--text-muted);
-            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-icon:hover { background: #f1f5f9; color: var(--error, #ef4444); }
+
+        /* Dashboard Specifics */
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             position: relative;
-            z-index: 1;
+            overflow: hidden;
+        }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            right: -20px; top: -20px;
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(79,70,229,0.1) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+        }
+        
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0.5rem 0;
         }
 
-        /* Dashboard View */
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 1.5rem; 
-            margin-bottom: 2rem;
+        /* Transaction List */
+        .tx-list { display: flex; flex-direction: column; }
+        .tx-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
         }
-        .stat-card { text-align: center; padding: 2rem; }
-        .stat-value { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0; }
-        .stat-label { color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; }
-
-        .chart-container { height: 300px; width: 100%; position: relative; }
-
-        /* Learning View */
-        .pattern-list { display: flex; flex-direction: column; gap: 1rem; }
-        .pattern-item {
-            border-left: 4px solid var(--primary);
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 0 8px 8px 0;
-        }
-        .pattern-tag {
-            display: inline-block;
-            padding: 2px 8px;
+        .tx-item:last-child { border-bottom: none; }
+        
+        .tx-icon {
+            width: 40px; height: 40px;
             background: #e0e7ff;
-            color: var(--primary-dark);
-            border-radius: 4px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+        
+        .tx-cat-badge {
             font-size: 0.75rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Insights Cards */
+        .pattern-card {
+            border-left: 5px solid var(--primary);
+            background: linear-gradient(to right, #fbfbfe, #ffffff);
         }
         
-        .chat-box {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 12px;
-            padding: 1.5rem;
+        .chat-ui {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-
-        /* Utilities */
-        .hidden { display: none !important; }
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid var(--primary);
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
+        .chat-header {
+            background: #f8fafc;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 600;
+            color: var(--primary-dark);
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chat-body { padding: 1.5rem; }
 
+        .spinner {
+            width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); 
+            border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .app-sidebar { width: 80px; padding: 1rem 0.5rem; align-items: center; }
+            .brand span, .nav-item span, .user-profile span { display: none; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <header>
-        <div>
-            <div class="logo">
-                <span>💰</span> Budge
-            </div>
-            <nav class="tabs">
-                <button class="tab-btn active" onclick="switchTab('input')">Add Data</button>
-                <button class="tab-btn" onclick="switchTab('dashboard')">Dashboard</button>
-                <button class="tab-btn" onclick="switchTab('learning')">Insights & Learning</button>
-            </nav>
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+        <div class="brand">
+            <div style="width:32px; height:32px; background:var(--secondary); border-radius:8px; display:flex; align-items:center; justify-content:center;">💰</div>
+            <span>Budge</span>
         </div>
-        <div id="userBadge" class="user-pill">
-            Guest User
-        </div>
-    </header>
-
-    <main>
         
-        <!-- View 1: Input / Upload -->
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="navTo('input', this)">
+                <div class="icon">➕</div> <span>Add Data</span>
+            </div>
+            <div class="nav-item" onclick="navTo('dashboard', this)">
+                <div class="icon">📊</div> <span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="navTo('learning', this)">
+                <div class="icon">🧠</div> <span>Insights</span>
+            </div>
+        </nav>
+
+        <div class="user-profile">
+            <div class="avatar" id="userInitial">U</div>
+            <div style="font-size: 0.9rem; font-weight: 500;">
+                <div id="userBadgeName">Guest</div>
+                <div style="font-size: 0.75rem; opacity: 0.7;">Active</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+        
+        <!-- View: INPUT -->
         <div id="view-input" class="view-section active">
-            <div class="input-grid">
-                
-                <!-- Manual Input -->
+            <div class="header-bar">
+                <div class="page-title">
+                    <h1>Add Transactions</h1>
+                    <p>Track your spending manually or upload statements.</p>
+                </div>
+            </div>
+
+            <div class="grid-layout grid-2">
+                <!-- Manual Form -->
                 <div class="card">
-                    <h2>Manual Entry</h2>
+                    <div class="card-header">
+                        <div class="card-title">New Entry</div>
+                    </div>
                     <form id="manualForm" onsubmit="handleManualSubmit(event)">
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="mDate" required>
+                        <div class="form-group grid-2" style="display:grid; gap:1rem; margin-bottom: 1.25rem;">
+                             <div>
+                                <label class="form-label">Date</label>
+                                <input type="date" id="mDate" class="form-input" required>
+                             </div>
+                             <div>
+                                <label class="form-label">Amount ($)</label>
+                                <input type="number" id="mAmount" step="0.01" placeholder="0.00" class="form-input" required>
+                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Merchant / Description</label>
-                            <input type="text" id="mMerchant" placeholder="e.g. Starbucks, Uber, Rent" required>
+                            <label class="form-label">Merchant</label>
+                            <input type="text" id="mMerchant" placeholder="e.g. Starbucks" class="form-input" required>
                         </div>
                         <div class="form-group">
-                            <label>Amount ($)</label>
-                            <input type="number" id="mAmount" step="0.01" placeholder="0.00" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Category (Optional)</label>
-                            <select id="mCategory">
-                                <option value="">Auto-detect</option>
-                                <option value="Food">Food & Dining</option>
+                            <label class="form-label">Category</label>
+                            <select id="mCategory" class="form-select">
+                                <option value="">✨ Auto-detect (Recommended)</option>
+                                <option value="Food & Dining">Food & Dining</option>
                                 <option value="Shopping">Shopping</option>
-                                <option value="Transport">Transport</option>
-                                <option value="Bills">Bills & Utilities</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Bills & Utilities">Bills & Utilities</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Groceries">Groceries</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-full">Add Transaction</button>
+                        <button type="submit" class="btn btn-primary" style="width:100%">
+                            <span>Add Transaction</span>
+                        </button>
                     </form>
                 </div>
 
-                <!-- Bulk Options -->
+                <!-- Settings / Tools -->
                 <div class="card">
-                    <h2>Bulk Options</h2>
+                    <div class="card-header">
+                        <div class="card-title">Tools & Data</div>
+                    </div>
                     
-                    <h3>Option A: Demo Data</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                        Load a sample dataset with interesting spending patterns to test the app.
-                    </p>
-                    <button onclick="createDemoData()" class="btn btn-outline btn-full" style="margin-bottom: 1.5rem;">
-                        Load Demo Data
-                    </button>
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <button onclick="createDemoData()" class="btn btn-outline" style="justify-content: flex-start;">
+                            <span>🚀 Load Demo Data</span>
+                        </button>
+                        
+                        <button onclick="clearAllTransactions()" class="btn btn-danger" style="justify-content: flex-start;">
+                            <span>🗑️ Clear All Transactions</span>
+                        </button>
 
-                    <h3>Option B: Upload Statement</h3>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                        Upload an image of your bank statement. (OCR is currently in Beta).
-                    </p>
-                    <input type="file" id="imageFile" accept="image/*" style="margin-bottom: 0.5rem;">
-                    <button onclick="uploadImage()" class="btn btn-outline btn-full" disabled title="OCR temporarily disabled">
-                        Upload & Extract (Beta)
-                    </button>
+                        <div style="border-top:1px solid var(--border-light); margin: 0.5rem 0;"></div>
+                        
+                        <div style="opacity: 0.6;">
+                            <label class="form-label">Upload Statement (Beta)</label>
+                            <button class="btn btn-outline" style="width:100%; cursor:not-allowed;" disabled>
+                                <span>📁 Upload Image (Disabled)</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-
             </div>
-            
-            <!-- Recent Transactions List (Mini) -->
-            <div class="card" id="recentTxCard" style="display:none;">
-                <h2>Recent Transactions</h2>
-                <div id="txList" style="max-height: 200px; overflow-y: auto;">
-                    <!-- Populated by JS -->
+
+            <!-- Recent list -->
+            <div class="card" style="margin-top: 2rem;">
+                 <div class="card-header">
+                    <div class="card-title">Recent Activity</div>
+                    <button onclick="fetchTransactions()" class="btn-icon" title="Refresh">↻</button>
+                </div>
+                <div id="txList" class="tx-list">
+                    <!-- JS Injected -->
                 </div>
             </div>
         </div>
 
-        <!-- View 2: Dashboard -->
+
+        <!-- View: DASHBOARD -->
         <div id="view-dashboard" class="view-section">
-            <div class="stats-grid">
+            <div class="header-bar">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <p>Overview of your financial health.</p>
+                </div>
+            </div>
+
+            <div class="grid-layout grid-3" style="margin-bottom: 2rem;">
                 <div class="card stat-card">
                     <div class="stat-label">Total Spent</div>
                     <div class="stat-value" id="totalSpent">$0.00</div>
-                    <div style="color: var(--text-muted); font-size: 0.875rem;">This Period</div>
                 </div>
                 <div class="card stat-card">
                     <div class="stat-label">Top Category</div>
                     <div class="stat-value" id="topCategory">-</div>
-                    <div style="color: var(--text-muted); font-size: 0.875rem;">Most spending</div>
                 </div>
                 <div class="card stat-card">
                     <div class="stat-label">Transactions</div>
                     <div class="stat-value" id="txCount">0</div>
-                    <div style="color: var(--text-muted); font-size: 0.875rem;">Total items</div>
                 </div>
             </div>
 
             <div class="card">
-                <h2>Spending Breakdown</h2>
-                <div class="chart-container">
+                <div class="card-header">
+                    <div class="card-title">Spending Breakdown</div>
+                </div>
+                <div style="height: 350px;">
                     <canvas id="spendingChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- View 3: Learning -->
+
+        <!-- View: LEARNING -->
         <div id="view-learning" class="view-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2>AI Insights & Patterns</h2>
+            <div class="header-bar">
+                <div class="page-title">
+                    <h1>AI Insights</h1>
+                    <p>Discover patterns and reflect on your habits.</p>
+                </div>
                 <button onclick="scanPatterns()" class="btn btn-primary">
-                    ✨ Analyze My Patterns
+                    <span>✨ Analyze My Patterns</span>
                 </button>
             </div>
 
-            <div id="patternsContainer" class="pattern-list">
-                <div class="card" style="text-align: center; padding: 3rem;">
-                    <p style="color: var(--text-muted);">Click "Analyze My Patterns" to detect spending habits.</p>
+            <div id="patternsContainer" class="grid-layout" style="margin-bottom: 2rem;">
+                 <!-- JS Injected -->
+                 <div class="card" style="text-align: center; padding: 4rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                    <h3 style="color:var(--text-main);">No analysis yet</h3>
+                    <p style="color:var(--text-muted);">Click the button above to have AI analyze your transaction history.</p>
                 </div>
             </div>
 
-            <div id="reflectionSection" class="hidden" style="margin-top: 2rem;">
-                <div class="card chat-box">
-                    <h3>🧠 Reflection Moment</h3>
-                    <p id="questionText" style="font-size: 1.1rem; font-weight: 500; margin: 1rem 0; color: #15803d;">
-                        Loading question...
-                    </p>
-                    <textarea id="answerText" placeholder="What are your thoughts?" style="min-height: 80px; margin-bottom: 1rem; background: white;"></textarea>
-                    <button onclick="submitReflection()" class="btn btn-primary">Submit Reflection</button>
-                    <div id="feedbackArea" style="margin-top: 1rem;"></div>
+            <div id="reflectionSection" style="display:none;">
+                <div class="chat-ui">
+                    <div class="chat-header">
+                        🧠 Mindful Reflection
+                    </div>
+                    <div class="chat-body">
+                        <p id="questionText" style="font-size: 1.15rem; color: #1e293b; line-height: 1.6; margin-bottom: 1.5rem;">
+                            Loading...
+                        </p>
+                        <textarea id="answerText" class="form-input" placeholder="Type your thoughts here..." style="min-height: 100px; margin-bottom: 1rem;"></textarea>
+                        <div style="display:flex; justify-content:space-between; align-items: center;">
+                             <button onclick="submitReflection()" class="btn btn-primary">Submit Reflection</button>
+                             <div id="feedbackArea" style="flex:1; margin-left: 1rem;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -387,62 +575,57 @@
 
     <script>
         const API_BASE = 'http://localhost:8000/api/v1';
-        
-        let state = {
-            userId: localStorage.getItem('budge_userId') || null,
-            patterns: [],
-            currentQuestionId: null
-        };
 
-        // Initialize
+        // --- Navigation Logic ---
+        function navTo(page, el) {
+            // UI
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${page}`).classList.add('active');
+            
+            // Logic
+            if(page === 'dashboard') updateDashboard();
+        }
+
+        // --- Data Logic (Same logic, better UI) ---
+        let state = { userId: localStorage.getItem('budge_userId'), patterns: [], currentQuestionId: null };
+
         document.addEventListener('DOMContentLoaded', () => {
             if (state.userId) {
-                document.getElementById('userBadge').textContent = `User: ${state.userId.substring(0,6)}...`;
-                document.getElementById('userBadge').style.display = 'block';
+                document.getElementById('userBadgeName').textContent = `User ${state.userId.substr(0,4)}`;
+                document.getElementById('userInitial').textContent = state.userId.charAt(0).toUpperCase();
                 updateDashboard();
                 fetchTransactions();
-            } else {
-                // If no user, show instructions or just clean state
             }
             document.getElementById('mDate').valueAsDate = new Date();
         });
-
-        // Tabs
-        function switchTab(tabName) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(`view-${tabName}`).classList.add('active');
-            const btns = document.querySelectorAll('.tab-btn');
-            if(tabName === 'input') btns[0].classList.add('active');
-            if(tabName === 'dashboard') btns[1].classList.add('active');
-            if(tabName === 'learning') btns[2].classList.add('active');
-
-            if(tabName === 'dashboard') updateDashboard();
-        }
-
-        // --- Data Input ---
 
         async function createDemoData() {
             try {
                 const res = await fetch(`${API_BASE}/test/create-user`, { method: 'POST' });
                 const data = await res.json();
-                handleUserLogin(data.user_id);
-                alert(`Loaded ${data.transactions_count} demo transactions!`);
-                fetchTransactions();
-                updateDashboard();
-            } catch (e) { console.error(e); alert('Error creating demo data'); }
+                handleLogin(data.user_id);
+                alert(`Loaded ${data.transactions_count} demo transactions!`); // Keep simple for now
+                fetchTransactions(); updateDashboard();
+            } catch (e) { console.error(e); }
+        }
+
+        async function createDemoData() {
+             try {
+                const res = await fetch(`${API_BASE}/test/create-user`, { method: 'POST' });
+                const data = await res.json();
+                handleLogin(data.user_id);
+                fetchTransactions(); updateDashboard();
+                // Custom toast/notification would be better than alert, but alert for speed
+                alert("Demo Data Loaded Successfully ✓");
+            } catch (e) { alert("Error loading data"); }
         }
 
         async function handleManualSubmit(e) {
             e.preventDefault();
-            
-            // If no user, create one on the fly (or use a dedicated 'create user' endpoint)
-            // For now, if no user ID, generate a random UUID locally to send to backend, which will create the user.
-            if (!state.userId) {
-                state.userId = crypto.randomUUID();
-                handleUserLogin(state.userId);
-            }
+            if(!state.userId) { state.userId = crypto.randomUUID(); handleLogin(state.userId); }
 
             const tx = {
                 user_id: state.userId,
@@ -453,35 +636,20 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/transactions/`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(tx)
-                });
-                
-                if(!res.ok) throw new Error("Failed to save");
-                
-                const savedTx = await res.json();
-                
-                alert("Transaction saved!");
-                fetchTransactions(); // Refresh list
-                document.getElementById('manualForm').reset();
-                document.getElementById('mDate').valueAsDate = new Date();
-                
-            } catch(e) {
-                alert("Error saving transaction: " + e.message);
-                console.error(e);
-            }
+                const res = await fetch(`${API_BASE}/transactions/`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(tx) });
+                if(res.ok) {
+                    fetchTransactions(); updateDashboard();
+                    document.getElementById('manualForm').reset();
+                    document.getElementById('mDate').valueAsDate = new Date();
+                }
+            } catch(e) { console.error(e); }
         }
 
-        function handleUserLogin(id) {
+        function handleLogin(id) {
             state.userId = id;
             localStorage.setItem('budge_userId', id);
-            document.getElementById('userBadge').textContent = `User: ${id.substring(0,6)}...`;
-            document.getElementById('userBadge').style.display = 'block';
+            document.getElementById('userBadgeName').textContent = `User ${id.substr(0,4)}`;
         }
-
-        // --- Dashboard & Data ---
 
         async function fetchTransactions() {
             if(!state.userId) return;
@@ -490,144 +658,163 @@
             
             const list = document.getElementById('txList');
             if(txs.length > 0) {
-                document.getElementById('recentTxCard').style.display = 'block';
-                list.innerHTML = txs.slice(0, 10).map(t => `
-                    <div style="padding: 0.5rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
-                        <div>
-                            <div style="font-weight: 500;">${t.merchant}</div>
-                            <div style="font-size: 0.8rem; color: #666;">${t.date}</div>
+                list.innerHTML = txs.map(t => {
+                    // Choose icon based on category
+                    let icon = '💸';
+                    if(t.category?.includes('Food')) icon = '🍔';
+                    if(t.category?.includes('Shop')) icon = '🛍️';
+                    if(t.category?.includes('Trans')) icon = '🚗';
+                    if(t.category?.includes('Bill')) icon = '💡';
+
+                    return `
+                    <div class="tx-item">
+                        <div style="display:flex; align-items:center;">
+                            <div class="tx-icon">${icon}</div>
+                            <div>
+                                <div style="font-weight:600; color:var(--text-main);">${t.merchant}</div>
+                                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">${t.date}</div>
+                            </div>
                         </div>
-                        <div style="font-weight: 600;">$${t.amount.toFixed(2)}</div>
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <span class="tx-cat-badge">${t.category || 'Other'}</span>
+                            <div style="font-weight:700; color:var(--text-main); width: 80px; text-align:right;">
+                                $${t.amount.toFixed(2)}
+                            </div>
+                             <span class="btn-icon" onclick="deleteTransaction('${t.id}')" title="Delete">🗑️</span>
+                        </div>
                     </div>
-                `).join('');
+                `}).join('');
             } else {
-                document.getElementById('recentTxCard').style.display = 'none';
+                list.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-muted);">No transactions yet.</div>';
             }
         }
 
+        async function deleteTransaction(txId) {
+            if(!confirm("Remove this transaction?")) return;
+            await fetch(`${API_BASE}/transactions/${state.userId}/${txId}`, { method: 'DELETE' });
+            fetchTransactions(); updateDashboard();
+        }
+
+        async function clearAllTransactions() {
+            if(!state.userId) return;
+            if(!confirm("⚠️ Delete ALL data? This action is permanent.")) return;
+            await fetch(`${API_BASE}/transactions/${state.userId}`, { method: 'DELETE' });
+            fetchTransactions(); updateDashboard();
+        }
+
+        // --- Dashboard ---
         async function updateDashboard() {
             if(!state.userId) return;
+            const res = await fetch(`${API_BASE}/transactions/${state.userId}/stats`);
+            const stats = await res.json();
             
-            try {
-                const res = await fetch(`${API_BASE}/transactions/${state.userId}/stats`);
-                const stats = await res.json();
-                
-                document.getElementById('totalSpent').textContent = `$${stats.total_spent.toFixed(2)}`;
-                document.getElementById('topCategory').textContent = stats.top_category || "-";
-                document.getElementById('txCount').textContent = stats.tx_count;
-
-                renderChart(stats.category_breakdown);
-            } catch(e) {
-                console.error("Dashboard error", e);
-            }
+            document.getElementById('totalSpent').textContent = `$${stats.total_spent.toFixed(2)}`;
+            document.getElementById('topCategory').textContent = stats.top_category || "None";
+            document.getElementById('txCount').textContent = stats.tx_count;
+            
+            renderChart(stats.category_breakdown);
         }
 
         let chartInstance = null;
-        function renderChart(breakdown) {
+        function renderChart(dataObj) {
             const ctx = document.getElementById('spendingChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-
-            const labels = Object.keys(breakdown || {});
-            const data = Object.values(breakdown || {});
+            if(chartInstance) chartInstance.destroy();
             
-            if(labels.length === 0) {
-                 // Empty state for chart?
-                 labels.push("No Data");
-                 data.push(0);
-            }
-
+            const labels = Object.keys(dataObj);
+            const data = Object.values(dataObj);
+            
+            const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+            
             chartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: 'bar', // Professional bar chart
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Spending ($)',
+                        label: 'Amount',
                         data: data,
-                        backgroundColor: '#4f46e5',
-                        borderRadius: 4
+                        backgroundColor: colors,
+                        borderRadius: 6,
+                        barThickness: 40,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    plugins: { legend: { display: false } }, // Clean look
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: 'Inter' } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter' } }
+                        }
+                    }
                 }
             });
         }
 
-        // --- Patterns & RAG ---
+        // --- AI Patterns ---
+        const PATTERN_NAMES = {
+            "LATTE_FACTOR": "Daily Grind",
+            "IMPULSE_CLUSTER": "Impulse Spree",
+            "BIG_SPLURGE": "Big Ticket Item",
+            "SUBSCRIPTION_TRAP": "Recurring Drain"
+        };
 
-        async function scanPatterns() {
-            if (!state.userId) return alert("Please add some data first!");
-            
-            const container = document.getElementById('patternsContainer');
-            container.innerHTML = '<div style="text-align: center; padding: 2rem;">Scanning...</div>';
-
-            try {
-                const res = await fetch(`${API_BASE}/patterns/scan/${state.userId}`, { method: 'POST' });
-                const patterns = await res.json();
-                state.patterns = patterns;
-
-                if (patterns.length === 0) {
-                    container.innerHTML = '<div class="card">No patterns detected yet. Try adding more varied transactions!</div>';
-                    return;
-                }
-
-                container.innerHTML = patterns.map(p => `
-                    <div class="card pattern-item">
-                        <span class="pattern-tag">${p.pattern_code}</span>
-                        <h3>${p.bias_mapping}</h3>
-                        <p>${JSON.stringify(p.details)}</p>
-                        <button onclick="generateQuestion('${p.id}')" class="btn btn-outline" style="margin-top:0.5rem; font-size: 0.8rem;">
-                            Reflect on this
-                        </button>
-                    </div>
-                `).join('');
-
-            } catch (e) {
-                container.innerHTML = `<div class="card" style="color:red">Error: ${e.message}</div>`;
-            }
+        function formatDetails(p) {
+             const d = p.details;
+             if(p.pattern_code == 'LATTE_FACTOR') return `Frequent small spending at <strong>${d.merchant}</strong>. Visited ${d.count} times.`;
+             if(p.pattern_code == 'IMPULSE_CLUSTER') return `High activity on <strong>${d.date}</strong> with ${d.count} purchases.`;
+             return JSON.stringify(d).replace(/[{"}]/g, '').replace(/,/g, ', ');
         }
 
-        async function generateQuestion(patternId) {
-            document.getElementById('reflectionSection').classList.remove('hidden');
-            document.getElementById('questionText').innerHTML = '<span class="loading-spinner"></span> Generating question...';
+        async function scanPatterns() {
+            if(!state.userId) return alert("Add data first!");
+            const con = document.getElementById('patternsContainer');
+            con.innerHTML = '<div style="text-align:center;">Analyzing...</div>';
             
-            try {
-                const res = await fetch(`${API_BASE}/learning/generate-question/${patternId}?user_id=${state.userId}`, { method: 'POST' });
-                const data = await res.json();
-                state.currentQuestionId = data.question_id;
-                document.getElementById('questionText').textContent = data.question_text;
-            } catch (e) {
-                document.getElementById('questionText').textContent = "Error generating question.";
+            const res = await fetch(`${API_BASE}/patterns/scan/${state.userId}`, { method: 'POST' });
+            const patterns = await res.json();
+            
+            if(patterns.length === 0) {
+                con.innerHTML = '<div class="card" style="grid-column:1/-1; text-align:center;">No specific patterns detected yet.</div>';
+                return;
             }
+
+            con.innerHTML = patterns.map(p => `
+                <div class="card pattern-card">
+                    <div style="margin-bottom:0.5rem;">
+                        <span class="tx-cat-badge" style="background:#e0e7ff; color:#3730a3;">${PATTERN_NAMES[p.pattern_code] || p.pattern_code}</span>
+                    </div>
+                    <h3 style="color:var(--text-main); margin-bottom:0.5rem;">${p.bias_mapping}</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1rem; line-height:1.5;">${formatDetails(p)}</p>
+                    <button onclick="reflect('${p.id}')" class="btn btn-outline" style="width:100%">Reflect on this</button>
+                </div>
+            `).join('');
+        }
+
+        async function reflect(id) {
+            document.getElementById('reflectionSection').style.display = 'block';
+            document.getElementById('reflectionSection').scrollIntoView({behavior:'smooth'});
+            document.getElementById('questionText').innerText = "Generating thoughtful question...";
+            
+            const res = await fetch(`${API_BASE}/learning/generate-question/${id}?user_id=${state.userId}`, { method:'POST' });
+            const data = await res.json();
+            state.currentQuestionId = data.question_id;
+            document.getElementById('questionText').innerText = data.question_text;
         }
 
         async function submitReflection() {
-            const val = document.getElementById('answerText').value;
-            if(!val) return;
-            
-            document.getElementById('feedbackArea').innerHTML = 'Analyzing...';
-            
-            try {
-                const res = await fetch(`${API_BASE}/learning/submit-answer?user_id=${state.userId}`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ question_id: state.currentQuestionId, answer_text: val })
-                });
-                const data = await res.json();
-                document.getElementById('feedbackArea').innerHTML = `
-                    <div style="background: #ecfdf5; padding: 1rem; border-radius: 8px; color: #047857;">
-                        <strong>Score: ${data.quality_score}/100</strong><br>
-                        ${data.message}
-                    </div>
-                `;
-            } catch (e) {
-                document.getElementById('feedbackArea').textContent = "Error submitting.";
-            }
+            const txt = document.getElementById('answerText').value;
+             const res = await fetch(`${API_BASE}/learning/submit-answer?user_id=${state.userId}`, { method:'POST', body:JSON.stringify({question_id: state.currentQuestionId, answer_text: txt}), headers:{'Content-Type':'application/json'} });
+             const data = await res.json();
+             document.getElementById('feedbackArea').innerHTML = `<span style="color:var(--secondary); font-weight:bold;">✨ Score: ${data.quality_score}/100</span>`;
+             alert(data.message);
         }
-    </script>
 
+    </script>
 </body>
 </html>
